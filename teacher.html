@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老師管理後台 | 課堂系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- 頂部導覽列 -->
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 text-xl font-bold">👨‍🏫 老師管理後台</div>
+                <div class="flex gap-2 sm:gap-4 overflow-x-auto">
+                    <button id="navClassroom" class="bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold shadow transition whitespace-nowrap">課堂點評</button>
+                    <button id="navStore" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">🎁 小賣部</button>
+                    <button id="navOrders" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">📋 審核</button>
+                    <button id="navQuiz" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">📝 測驗</button>
+                    <button id="navRoster" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">名單</button>
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">登出</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- 分頁 1：課堂點評 -->
+        <div id="classroomTab" class="block">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <h2 class="text-2xl font-bold text-gray-800">✨ 課堂點評與加分</h2>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white border border-gray-300 rounded-lg flex items-center px-3 py-1 shadow-sm">
+                        <span class="text-gray-500 text-sm mr-2">班別篩選:</span>
+                        <select id="classFilter" class="bg-transparent text-gray-700 font-bold focus:outline-none py-1">
+                            <option value="all">顯示全部</option>
+                        </select>
+                    </div>
+                    <button id="refreshBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition">🔄 重新整理</button>
+                </div>
+            </div>
+            <div id="studentGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </div>
+
+        <!-- 分頁 2：小賣部管理 -->
+        <div id="storeTab" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🎁 小賣部商品管理</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                <h3 class="font-bold text-indigo-600 mb-4 flex items-center gap-2"><span>➕</span> 新增上架物品</h3>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs text-gray-500 mb-1">圖示 (Emoji)</label>
+                        <input type="text" id="itemIcon" placeholder="例: 🎫" class="w-full border border-gray-300 p-2 rounded-lg outline-none text-center text-xl">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs text-gray-500 mb-1">物品名稱</label>
+                        <input type="text" id="itemName" placeholder="例: 免交功課券" class="w-full border border-gray-300 p-2 rounded-lg outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs text-gray-500 mb-1">所需積分</label>
+                        <input type="number" id="itemPoints" placeholder="例: 50" class="w-full border border-gray-300 p-2 rounded-lg outline-none">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs text-gray-500 mb-1">物品簡介</label>
+                        <input type="text" id="itemDesc" placeholder="例: 抵銷一次家課" class="w-full border border-gray-300 p-2 rounded-lg outline-none">
+                    </div>
+                    <div class="md:col-span-2 flex items-end">
+                        <button id="addItemBtn" class="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold p-2 rounded-lg transition shadow-sm">上架商品</button>
+                    </div>
+                </div>
+            </div>
+            <h3 class="font-bold text-gray-700 mb-4">🛍️ 已上架商品清單</h3>
+            <div id="storeGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"></div>
+        </div>
+
+        <!-- 分頁 3：兌換審核 (訂單紀錄) -->
+        <div id="ordersTab" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">📋 學生兌換紀錄</h2>
+                <button id="refreshOrdersBtn" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">🔄 更新訂單</button>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
+                            <th class="p-4 font-medium">兌換時間</th>
+                            <th class="p-4 font-medium">班別與姓名</th>
+                            <th class="p-4 font-medium">兌換物品</th>
+                            <th class="p-4 font-medium">花費積分</th>
+                            <th class="p-4 font-medium">狀態與操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 分頁 4：測驗管理 -->
+        <div id="quizTab" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">📝 發佈自學小測</h2>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/3 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center bg-gray-50 text-center relative">
+                    <div class="text-4xl mb-2">📸</div>
+                    <p class="text-sm text-gray-500 mb-4">上傳考卷圖片 (JPG/PNG)</p>
+                    <input type="file" id="quizImage" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <img id="imagePreview" class="hidden max-h-48 rounded-lg shadow-sm mt-2" src="" alt="預覽">
+                </div>
+                <div class="md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">測驗名稱</label>
+                        <input type="text" id="quizTitle" placeholder="例如：數學第一單元小測" class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <!-- 🌟 這裡修正為「每題積分」 -->
+                        <label class="block text-sm font-bold text-gray-700 mb-1">每題積分</label>
+                        <input type="number" id="quizPoints" placeholder="例如：1" class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">總題數 (選擇題)</label>
+                        <input type="number" id="quizCount" placeholder="輸入 1~20" min="1" max="20" class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">設定標準答案</label>
+                        <div id="answerKeyContainer" class="flex flex-wrap gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[80px]">
+                            <p class="text-gray-400 text-sm w-full text-center my-auto">請先輸入總題數，這裡會產生答案卡</p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 mt-2">
+                        <button id="publishQuizBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-lg transition shadow-md">🚀 立即發佈測驗</button>
+                    </div>
+                </div>
+            </div>
+            <h3 class="font-bold text-gray-700 mb-4">📚 已發佈測驗列表</h3>
+            <div id="quizGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- 分頁 5：名單管理 -->
+        <div id="rosterTab" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">📝 上載學生名單</h2>
+            <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-10 bg-gray-50 hover:bg-gray-100 transition">
+                <div class="text-4xl mb-3">📊</div>
+                <p class="text-gray-600 mb-4 text-center">請上傳包含學生資料的 Excel 檔案 (.xlsx)</p>
+                <input type="file" id="excelUpload" accept=".xlsx, .xls" class="hidden">
+                <button onclick="document.getElementById('excelUpload').click()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-6 rounded-lg shadow-sm transition">選擇 Excel 檔案</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, getDocs, query, where, updateDoc, increment, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // ⚠️⚠️⚠️ 1. 請填入你的 Firebase 金鑰
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWBQwYc79BXd8RoYnlKo03vVnyDiES3eE",
+            authDomain: "class-pt.firebaseapp.com",
+            projectId: "class-pt",
+            storageBucket: "class-pt.firebasestorage.app",
+            messagingSenderId: "427977016286",
+            appId: "1:427977016286:web:9ebf3b0cb61a7db43a934f"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ⚠️⚠️⚠️ 2. 請填入你的 ImgBB API 金鑰
+        const IMGBB_API_KEY = "25d62dacbf43362c3dc77d20d167a3fa"; 
+
+        // === 介面切換邏輯 ===
+        const tabs = {
+            classroom: { btn: document.getElementById('navClassroom'), content: document.getElementById('classroomTab') },
+            store: { btn: document.getElementById('navStore'), content: document.getElementById('storeTab') },
+            orders: { btn: document.getElementById('navOrders'), content: document.getElementById('ordersTab') },
+            quiz: { btn: document.getElementById('navQuiz'), content: document.getElementById('quizTab') },
+            roster: { btn: document.getElementById('navRoster'), content: document.getElementById('rosterTab') }
+        };
+
+        function switchTab(activeTabName) {
+            Object.keys(tabs).forEach(key => {
+                if (key === activeTabName) {
+                    tabs[key].content.classList.remove('hidden');
+                    tabs[key].btn.className = "bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold shadow transition whitespace-nowrap";
+                } else {
+                    tabs[key].content.classList.add('hidden');
+                    tabs[key].btn.className = "bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm transition whitespace-nowrap";
+                }
+            });
+        }
+        
+        tabs.classroom.btn.addEventListener('click', () => switchTab('classroom'));
+        tabs.store.btn.addEventListener('click', () => { switchTab('store'); loadStoreItems(); });
+        tabs.orders.btn.addEventListener('click', () => { switchTab('orders'); loadOrders(); });
+        tabs.quiz.btn.addEventListener('click', () => { switchTab('quiz'); loadQuizzes(); });
+        tabs.roster.btn.addEventListener('click', () => switchTab('roster'));
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = "index.html"));
+
+        // === 1. 課堂管理與名單 (Classroom) ===
+        let allStudents = []; 
+        let uniqueClasses = new Set(); 
+
+        async function fetchStudentsFromDB() {
+            const grid = document.getElementById('studentGrid');
+            try {
+                const q = query(collection(db, "users"), where("role", "==", "student"));
+                const querySnapshot = await getDocs(q);
+                allStudents = []; uniqueClasses.clear();
+                querySnapshot.forEach((docSnap) => {
+                    const student = docSnap.data(); student.id = docSnap.id;
+                    allStudents.push(student); if(student.class) uniqueClasses.add(student.class);
+                });
+                allStudents.sort((a, b) => { if (a.class !== b.class) return a.class.localeCompare(b.class); return parseInt(a.classNo) - parseInt(b.classNo); });
+                const filterSelect = document.getElementById('classFilter');
+                filterSelect.innerHTML = '<option value="all">顯示全部</option>';
+                Array.from(uniqueClasses).sort().forEach(className => {
+                    const option = document.createElement('option'); option.value = className; option.textContent = className + ' 班'; filterSelect.appendChild(option);
+                });
+                renderStudentCards("all");
+            } catch (error) { grid.innerHTML = '載入失敗'; }
+        }
+
+        function renderStudentCards(filterClass) {
+            const grid = document.getElementById('studentGrid'); grid.innerHTML = ''; 
+            const filteredStudents = filterClass === "all" ? allStudents : allStudents.filter(s => s.class === filterClass);
+            filteredStudents.forEach((student) => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center hover:shadow-md transition relative group";
+                card.innerHTML = `
+                    <button onclick="window.deleteStudent('${student.id}', '${student.nameZh}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-50 group-hover:opacity-100">🗑️</button>
+                    <div class="w-16 h-16 bg-gradient-to-tr from-indigo-100 to-blue-100 text-indigo-600 rounded-full flex items-center justify-center text-xl font-bold mb-3">${student.nameZh ? student.nameZh.charAt(0) : 'S'}</div>
+                    <h3 class="font-bold text-gray-800 text-lg">${student.nameZh}</h3>
+                    <p class="text-sm text-gray-500 mb-4">${student.class}班 ${student.classNo}號</p>
+                    <div class="text-3xl font-black text-indigo-600 mb-4"><span id="score-${student.id.replace(/[@.]/g, '-')}">${student.points || 0}</span><span class="text-sm text-gray-400">分</span></div>
+                    <div class="flex gap-2 w-full">
+                        <button onclick="window.updateScore('${student.id}', -1)" class="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-bold">-1</button>
+                        <button onclick="window.updateScore('${student.id}', 1)" class="flex-1 bg-green-50 text-green-600 py-2 rounded-lg font-bold">+1</button>
+                        <button onclick="window.updateScore('${student.id}', 2)" class="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg font-bold">+2</button>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+        document.getElementById('classFilter').addEventListener('change', (e) => renderStudentCards(e.target.value));
+        document.getElementById('refreshBtn').addEventListener('click', fetchStudentsFromDB);
+
+        window.updateScore = async function(email, amount) {
+            try {
+                await updateDoc(doc(db, "users", email), { points: increment(amount) });
+                const scoreSpan = document.getElementById(`score-${email.replace(/[@.]/g, '-')}`);
+                if (scoreSpan) { scoreSpan.innerText = parseInt(scoreSpan.innerText) + amount; }
+                const studentIndex = allStudents.findIndex(s => s.id === email);
+                if (studentIndex !== -1) allStudents[studentIndex].points += amount;
+                Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: amount > 0 ? 'success' : 'warning', title: `${amount > 0 ? '+' : ''}${amount} 分已記錄` });
+            } catch (error) {}
+        };
+        window.deleteStudent = function(email, name) {
+            Swal.fire({ title: '刪除紀錄？', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: '刪除' }).then(async (result) => {
+                if (result.isConfirmed) { await deleteDoc(doc(db, "users", email)); fetchStudentsFromDB(); }
+            });
+        };
+
+        // Excel上傳
+        document.getElementById('excelUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            Swal.fire({ title: '讀取中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                const students = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                for (const student of students) {
+                    const userEmail = student.Email || student.email; if (!userEmail) continue; 
+                    await setDoc(doc(db, "users", userEmail.toLowerCase()), { role: "student", class: student['班別']||"", classNo: String(student['班號']||""), nameZh: student['中文名']||"", nameEn: student['英文名']||"", email: userEmail.toLowerCase(), points: 0 }, { merge: true });
+                }
+                Swal.fire('上傳成功！', '', 'success').then(() => { fetchStudentsFromDB().then(() => tabs.classroom.btn.click()); });
+            };
+            reader.readAsArrayBuffer(file); e.target.value = ''; 
+        });
+
+        // === 2. 小賣部 (Store) ===
+        document.getElementById('addItemBtn').addEventListener('click', async () => {
+            const icon = document.getElementById('itemIcon').value.trim() || "🎁";
+            const name = document.getElementById('itemName').value.trim();
+            const points = parseInt(document.getElementById('itemPoints').value);
+            const desc = document.getElementById('itemDesc').value.trim();
+            if (!name || isNaN(points) || points <= 0) { Swal.fire('錯誤', '請填寫完整資訊', 'error'); return; }
+            try {
+                await addDoc(collection(db, "store_items"), { icon, name, points, desc, createdAt: new Date() });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '上架成功！', showConfirmButton: false, timer: 1500 });
+                document.getElementById('itemName').value = ''; document.getElementById('itemPoints').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('itemIcon').value = '';
+                loadStoreItems();
+            } catch (error) { Swal.fire('錯誤', '上架失敗', 'error'); }
+        });
+        async function loadStoreItems() {
+            const grid = document.getElementById('storeGrid'); grid.innerHTML = '';
+            try {
+                const q = query(collection(db, "store_items"), orderBy("points", "asc"));
+                const querySnapshot = await getDocs(q);
+                if(querySnapshot.empty) { grid.innerHTML = '<div class="col-span-full text-center py-10">目前沒有商品。</div>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const item = docSnap.data();
+                    const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-5 flex flex-col items-center relative group";
+                    card.innerHTML = `<button onclick="window.deleteItem('${docSnap.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-50 group-hover:opacity-100">🗑️</button>
+                        <div class="text-5xl mb-3">${item.icon}</div><h4 class="font-bold text-lg mb-1">${item.name}</h4><p class="text-xs text-gray-500 mb-4 h-8 overflow-hidden">${item.desc}</p>
+                        <div class="w-full bg-yellow-50 text-yellow-700 text-center py-2 rounded-lg font-black mt-auto">💎 ${item.points} 分</div>`;
+                    grid.appendChild(card);
+                });
+            } catch (error) {}
+        }
+        window.deleteItem = function(itemId) {
+            Swal.fire({ title: '下架商品？', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: '下架' }).then(async (res) => {
+                if (res.isConfirmed) { await deleteDoc(doc(db, "store_items", itemId)); loadStoreItems(); }
+            });
+        };
+
+        // === 3. 審核訂單 (Orders) ===
+        async function loadOrders() {
+            const tbody = document.getElementById('ordersTableBody'); tbody.innerHTML = '';
+            try {
+                const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                if(querySnapshot.empty) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10">無兌換紀錄。</td></tr>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const order = docSnap.data(); const orderId = docSnap.id;
+                    const dateObj = order.timestamp ? order.timestamp.toDate() : new Date();
+                    const timeString = `${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}`;
+                    const isPending = order.status === "pending";
+                    const statusBadge = isPending ? `<span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">⏳ 待發放</span>` : `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">✅ 已發放</span>`;
+                    const actionBtn = isPending ? `<button onclick="window.fulfillOrder('${orderId}')" class="ml-3 bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-bold">確認發放</button>` : `<button onclick="window.deleteOrder('${orderId}')" class="ml-3 text-gray-400 hover:text-red-500 text-xs underline">刪除</button>`;
+                    const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
+                    tr.innerHTML = `<td class="p-4 text-sm">${timeString}</td><td class="p-4 font-bold">${order.studentClass} ${order.studentName}</td><td class="p-4 font-bold text-indigo-600">${order.itemName}</td><td class="p-4 text-sm">💎 ${order.pointsCost}</td><td class="p-4 flex items-center">${statusBadge} ${actionBtn}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {}
+        }
+        document.getElementById('refreshOrdersBtn').addEventListener('click', loadOrders);
+        window.fulfillOrder = async function(orderId) { await updateDoc(doc(db, "orders", orderId), { status: "completed" }); loadOrders(); };
+        window.deleteOrder = async function(orderId) { await deleteDoc(doc(db, "orders", orderId)); loadOrders(); };
+
+        // === 4. 測驗管理 (Quiz) ===
+        const quizImageInput = document.getElementById('quizImage'); const imagePreview = document.getElementById('imagePreview');
+        quizImageInput.addEventListener('change', function() {
+            const file = this.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { imagePreview.src = e.target.result; imagePreview.classList.remove('hidden'); }; reader.readAsDataURL(file); }
+        });
+        document.getElementById('quizCount').addEventListener('input', function() {
+            const count = parseInt(this.value); const container = document.getElementById('answerKeyContainer'); container.innerHTML = ''; 
+            if (!count || count < 1) return;
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement('div'); div.className = "flex items-center gap-1 bg-white p-1 rounded border shadow-sm";
+                div.innerHTML = `<span class="text-xs font-bold text-gray-600 w-5 text-center">${i}.</span><select id="ans-${i}" class="text-sm font-bold text-indigo-600 outline-none"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>`;
+                container.appendChild(div);
+            }
+        });
+        document.getElementById('publishQuizBtn').addEventListener('click', async () => {
+            const title = document.getElementById('quizTitle').value.trim();
+            const pointsPerQuestion = parseInt(document.getElementById('quizPoints').value);
+            const count = parseInt(document.getElementById('quizCount').value);
+            const file = quizImageInput.files[0];
+            if (!title || !pointsPerQuestion || !count || !file) { Swal.fire('資料不完整', '請填寫完整並上傳圖片。', 'warning'); return; }
+            Swal.fire({ title: '上傳發佈中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            try {
+                const formData = new FormData(); formData.append("image", file);
+                const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const imgData = await imgRes.json();
+                if (!imgData.success) throw new Error("圖片上傳失敗");
+                const answerKey = {}; for (let i = 1; i <= count; i++) { answerKey[i.toString()] = document.getElementById(`ans-${i}`).value; }
+                await addDoc(collection(db, "quizzes"), { title, pointsPerQuestion, questionCount: count, imageUrl: imgData.data.url, answerKey, createdAt: new Date() });
+                Swal.fire('發佈成功！', '測驗已上架', 'success');
+                document.getElementById('quizTitle').value = ''; document.getElementById('quizPoints').value = ''; document.getElementById('quizCount').value = ''; imagePreview.classList.add('hidden'); quizImageInput.value = ''; document.getElementById('answerKeyContainer').innerHTML = '';
+                loadQuizzes();
+            } catch (error) { Swal.fire('錯誤', '上傳失敗', 'error'); }
+        });
+        async function loadQuizzes() {
+            const grid = document.getElementById('quizGrid'); grid.innerHTML = '';
+            try {
+                const q = query(collection(db, "quizzes"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                if(querySnapshot.empty) { grid.innerHTML = '<p class="text-gray-500">無測驗。</p>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const quiz = docSnap.data(); const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-sm border relative group";
+                    card.innerHTML = `<button onclick="window.deleteQuiz('${docSnap.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-50 group-hover:opacity-100">🗑️</button><h4 class="font-bold text-lg mb-1">${quiz.title}</h4><p class="text-sm text-gray-500 mb-2">共 ${quiz.questionCount} 題 | 每題: 💎 ${quiz.pointsPerQuestion || 0} 分</p><img src="${quiz.imageUrl}" class="w-full h-24 object-cover rounded border">`;
+                    grid.appendChild(card);
+                });
+            } catch (error) {}
+        }
+        window.deleteQuiz = function(quizId) { Swal.fire({ title: '刪除測驗？', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: '刪除' }).then(async (res) => { if (res.isConfirmed) { await deleteDoc(doc(db, "quizzes", quizId)); loadQuizzes(); } }); };
+
+        // 初始化
+        fetchStudentsFromDB();
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入 | 課堂系統</title>
+    
+    <!-- 引入 Tailwind CSS (極簡排版用) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 SweetAlert2 (漂亮的彈出視窗) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center h-screen">
+
+    <!-- 登入卡片 -->
+    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full text-center border border-gray-100">
+        <div class="mb-8">
+            <!-- Logo 區塊 -->
+            <div class="w-16 h-16 bg-indigo-500 text-white rounded-full flex items-center justify-center mx-auto text-3xl font-bold mb-4 shadow-md">
+                📚
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 tracking-wide">課堂自習系統</h1>
+            <p class="text-gray-500 mt-2 text-sm">請使用 Google 帳號登入</p>
+        </div>
+
+        <!-- Google 登入按鈕 -->
+        <button id="loginBtn" class="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google Logo">
+            Sign in with Google
+        </button>
+    </div>
+
+    <!-- Firebase 與 登入邏輯 (使用 ES6 Module) -->
+    <script type="module">
+        // 1. 引入 Firebase 核心與 Auth 功能
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        // ⚠️ 2. 請在這裡貼上你剛剛在 Firebase 複製的 firebaseConfig！
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWBQwYc79BXd8RoYnlKo03vVnyDiES3eE",
+            authDomain: "class-pt.firebaseapp.com",
+            projectId: "class-pt",
+            storageBucket: "class-pt.firebasestorage.app",
+            messagingSenderId: "427977016286",
+            appId: "1:427977016286:web:9ebf3b0cb61a7db43a934f"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // ⚠️ 3. 設定你的老師專用 Email
+        const teacherEmail = "tonywong0715@gmail.com"; // ★ 請改成你自己的 Gmail！
+
+        // 4. 監聽按鈕點擊事件
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    
+                    // 判斷身分是老師還是學生
+                    if(user.email === teacherEmail) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '老師您好！',
+                            text: '準備進入老師管理後台...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // 未來這裡會跳轉到老師介面
+                            Swal.fire('跳轉測試', '即將前往 teacher.html (尚未建立)', 'info');
+                            window.location.href = "teacher.html"; 
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '同學你好！',
+                            text: '準備進入學生自學區...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // 未來這裡會跳轉到學生介面
+                            Swal.fire('跳轉測試', '即將前往 student.html (尚未建立)', 'info');
+                            window.location.href = "student.html";
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("登入失敗:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: '登入失敗',
+                        text: error.message
+                    });
+                });
+        });
+    </script>
+</body>
+</html>

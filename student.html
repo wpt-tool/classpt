@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生個人主頁 | 課堂系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <nav class="bg-blue-500 text-white shadow-md relative z-20">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 text-xl font-bold">🎓 學生自學空間</div>
+                <button id="logoutBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm transition shadow">登出</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 py-8 relative z-10">
+        
+        <!-- 視圖 1：個人主頁 -->
+        <div id="homeView" class="block">
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8 text-center relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full z-0"></div>
+                <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-50 rounded-full z-0"></div>
+                <div class="relative z-10">
+                    <div class="w-24 h-24 bg-gradient-to-tr from-blue-400 to-indigo-400 text-white rounded-full flex items-center justify-center text-4xl font-bold mx-auto mb-4 shadow-lg" id="avatarText">?</div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-1" id="studentName">載入中...</h2>
+                    <p class="text-gray-500 mb-6 font-medium" id="studentClass">--班 --號</p>
+                    <div class="bg-gray-50 inline-block px-10 py-6 rounded-2xl border border-gray-100 shadow-inner">
+                        <p class="text-gray-500 text-sm font-bold mb-1 tracking-wider">目前總積分</p>
+                        <div class="text-5xl font-black text-blue-600"><span id="studentPoints">0</span> <span class="text-xl font-bold text-gray-400">分</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="enterQuizBtn" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-green-300 transition cursor-pointer flex items-center gap-4 group">
+                    <div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">📝</div>
+                    <div><h3 class="font-bold text-gray-800 text-lg">自學任務區</h3><p class="text-gray-500 text-sm">完成小測獲取積分</p></div>
+                </div>
+                <div id="enterStoreBtn" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-yellow-300 transition cursor-pointer flex items-center gap-4 group">
+                    <div class="w-14 h-14 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">🎁</div>
+                    <div><h3 class="font-bold text-gray-800 text-lg">兌換小賣部</h3><p class="text-gray-500 text-sm">使用積分兌換獎勵</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 視圖 2：測驗列表 -->
+        <div id="quizListView" class="hidden">
+            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition font-bold">⬅️ 返回主頁</button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">📝 自學任務區</h2>
+            <p class="text-gray-500 mb-6">答對題目即可獲取積分，可重複挑戰拿滿分！</p>
+            <div id="studentQuizGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- 視圖 3：作答畫面 -->
+        <div id="quizPlayingView" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="switchView('quizListView')" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition font-bold">⬅️ 放棄作答</button>
+                <div class="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full font-bold text-sm shadow-sm">獎勵: 💎 <span id="playingRewardPoints">0</span></div>
+            </div>
+            <h2 id="playingQuizTitle" class="text-xl font-bold text-gray-800 mb-6 text-center">測驗名稱</h2>
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="md:w-2/3 bg-white p-2 rounded-xl shadow-sm border"><img id="playingQuizImage" src="" class="w-full h-auto rounded-lg object-contain" style="max-height: 60vh;"></div>
+                <div class="md:w-1/3 bg-white p-6 rounded-xl shadow-sm border flex flex-col">
+                    <h3 class="font-bold text-gray-700 mb-4 border-b pb-2 text-center">📌 數位答案卡</h3>
+                    <div id="answerSheetContainer" class="flex-grow overflow-y-auto mb-4 space-y-3 max-h-[50vh] px-2"></div>
+                    <button id="submitQuizBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition shadow-md text-lg">✅ 提交答案</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 視圖 4：小賣部 -->
+        <div id="storeView" class="hidden">
+            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition font-bold">⬅️ 返回主頁</button>
+            <div class="flex justify-between items-end mb-6">
+                <div><h2 class="text-2xl font-bold text-gray-800">🎁 兌換小賣部</h2></div>
+                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold">擁有積分: <span id="storeCurrentPoints">0</span></div>
+            </div>
+            <div id="studentStoreGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, updateDoc, increment, addDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // ⚠️⚠️⚠️ 請填入你的 Firebase 金鑰
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWBQwYc79BXd8RoYnlKo03vVnyDiES3eE",
+            authDomain: "class-pt.firebaseapp.com",
+            projectId: "class-pt",
+            storageBucket: "class-pt.firebasestorage.app",
+            messagingSenderId: "427977016286",
+            appId: "1:427977016286:web:9ebf3b0cb61a7db43a934f"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentStudent = null; let activeQuiz = null; 
+
+        // === 登入驗證與介面切換 ===
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.email.toLowerCase()));
+                    if (docSnap.exists() && docSnap.data().role === 'student') {
+                        currentStudent = docSnap.data(); currentStudent.email = user.email.toLowerCase();
+                        if (!currentStudent.quizProgress) currentStudent.quizProgress = {};
+                        updateUI();
+                    } else { Swal.fire('錯誤', '找不到學生資料', 'error').then(() => signOut(auth)); }
+                } catch (error) {}
+            } else { window.location.href = "index.html"; }
+        });
+
+        function updateUI() {
+            document.getElementById('studentName').innerText = currentStudent.nameZh;
+            document.getElementById('studentClass').innerText = `${currentStudent.class}班 ${currentStudent.classNo}號`;
+            document.getElementById('studentPoints').innerText = currentStudent.points;
+            document.getElementById('storeCurrentPoints').innerText = currentStudent.points;
+            document.getElementById('avatarText').innerText = currentStudent.nameZh.charAt(0);
+        }
+
+        window.switchView = function(viewId) {
+            ['homeView', 'quizListView', 'quizPlayingView', 'storeView'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            if(viewId === 'homeView') updateUI();
+        };
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = "index.html"));
+
+        // === 1. 小賣部邏輯 ===
+        document.getElementById('enterStoreBtn').addEventListener('click', () => { switchView('storeView'); loadStoreItems(); });
+        async function loadStoreItems() {
+            const grid = document.getElementById('studentStoreGrid'); grid.innerHTML = '載入中...';
+            try {
+                const querySnapshot = await getDocs(query(collection(db, "store_items"), orderBy("points", "asc")));
+                grid.innerHTML = ''; if(querySnapshot.empty) { grid.innerHTML = '<p class="text-gray-400">目前沒有商品。</p>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const item = docSnap.data(); const canAfford = currentStudent.points >= item.points;
+                    const btnClass = canAfford ? "bg-blue-600 hover:bg-blue-700 text-white shadow" : "bg-gray-200 text-gray-400 cursor-not-allowed";
+                    const btnText = canAfford ? "立即兌換" : "積分不足";
+                    const clickAction = canAfford ? `onclick="window.redeemItem('${docSnap.id}', '${item.name}', ${item.points})"` : "";
+                    const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-5 flex flex-col";
+                    card.innerHTML = `<div class="flex items-center gap-4 mb-4"><div class="text-5xl">${item.icon}</div><div><h4 class="font-bold text-lg">${item.name}</h4><span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded">💎 ${item.points} 分</span></div></div><p class="text-sm text-gray-500 mb-5 flex-grow">${item.desc}</p><button ${clickAction} class="w-full py-2.5 rounded-lg font-bold transition ${btnClass}">${btnText}</button>`;
+                    grid.appendChild(card);
+                });
+            } catch (error) {}
+        }
+        window.redeemItem = async function(itemId, itemName, itemPoints) {
+            Swal.fire({ title: '確認兌換？', text: `將扣除 ${itemPoints} 分`, icon: 'question', showCancelButton: true, confirmButtonColor: '#3085d6', confirmButtonText: '確認兌換' }).then(async (res) => {
+                if (res.isConfirmed) {
+                    if(currentStudent.points < itemPoints) { Swal.fire('錯誤', '積分不足！', 'error'); return; }
+                    Swal.fire({ title: '處理中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    try {
+                        await updateDoc(doc(db, "users", currentStudent.email), { points: increment(-itemPoints) });
+                        await addDoc(collection(db, "orders"), { studentEmail: currentStudent.email, studentName: currentStudent.nameZh, studentClass: currentStudent.class, itemName: itemName, pointsCost: itemPoints, status: "pending", timestamp: new Date() });
+                        currentStudent.points -= itemPoints; updateUI();
+                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        Swal.fire('兌換成功！', `請等待老師發放。`, 'success'); loadStoreItems();
+                    } catch (error) { Swal.fire('錯誤', '兌換失敗', 'error'); }
+                }
+            });
+        };
+
+        // === 2. 測驗庫邏輯 (智慧批改) ===
+        document.getElementById('enterQuizBtn').addEventListener('click', () => { switchView('quizListView'); loadStudentQuizzes(); });
+        async function loadStudentQuizzes() {
+            const grid = document.getElementById('studentQuizGrid'); grid.innerHTML = '載入中...';
+            try {
+                const querySnapshot = await getDocs(query(collection(db, "quizzes"), orderBy("createdAt", "desc")));
+                grid.innerHTML = ''; if(querySnapshot.empty) { grid.innerHTML = '<p class="text-gray-400">目前沒有測驗。</p>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const quiz = docSnap.data(); quiz.id = docSnap.id;
+                    const pastCorrectArr = currentStudent.quizProgress[quiz.id] || [];
+                    const isAllDone = pastCorrectArr.length === quiz.questionCount;
+                    const badge = isAllDone ? `<span class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm shadow">✅ 已全對通關</span>` : `<span class="bg-white text-indigo-600 font-bold px-3 py-1 rounded-full text-sm shadow">已答對 ${pastCorrectArr.length}/${quiz.questionCount} 題</span>`;
+                    const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col";
+                    card.innerHTML = `
+                        <div class="h-32 bg-gray-100 relative overflow-hidden group">
+                            <img src="${quiz.imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition blur-[2px]">
+                            <div class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">${badge}</div>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow"><h4 class="font-bold text-lg mb-2">${quiz.title}</h4>
+                        <div class="mt-auto flex justify-between items-center"><span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded">💎 每題 ${quiz.pointsPerQuestion} 分</span>
+                        <button onclick="startQuiz('${encodeURIComponent(JSON.stringify(quiz))}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm">${isAllDone ? '再次練習' : '繼續挑戰'}</button></div></div>`;
+                    grid.appendChild(card);
+                });
+            } catch (error) {}
+        }
+
+        window.startQuiz = function(quizDataStr) {
+            activeQuiz = JSON.parse(decodeURIComponent(quizDataStr)); window.studentAnswers = {}; 
+            document.getElementById('playingQuizTitle').innerText = activeQuiz.title;
+            document.getElementById('playingRewardPoints').innerText = `${activeQuiz.pointsPerQuestion} / 題`;
+            document.getElementById('playingQuizImage').src = activeQuiz.imageUrl;
+            const pastCorrect = currentStudent.quizProgress[activeQuiz.id] || [];
+            const container = document.getElementById('answerSheetContainer'); container.innerHTML = ''; 
+            for (let i = 1; i <= activeQuiz.questionCount; i++) {
+                const checkMark = pastCorrect.includes(i.toString()) ? '<span class="text-green-500 text-xs ml-1">✔️</span>' : '';
+                const qDiv = document.createElement('div'); qDiv.className = "flex items-center gap-3 bg-gray-50 p-2 rounded-lg";
+                qDiv.innerHTML = `<div class="font-bold text-gray-500 w-8 flex items-center justify-end">${i}. ${checkMark}</div>
+                    <div class="flex gap-2 w-full justify-between" id="q-${i}">
+                        ${['A','B','C','D'].map(ans => `<button onclick="selectAnswer(${i}, '${ans}')" class="mc-btn flex-1 bg-white border border-gray-300 py-1 rounded font-bold text-gray-600 hover:bg-blue-50" data-q="${i}" data-ans="${ans}">${ans}</button>`).join('')}
+                    </div>`;
+                container.appendChild(qDiv);
+            }
+            switchView('quizPlayingView');
+        };
+
+        window.selectAnswer = function(qNum, ans) {
+            studentAnswers[qNum] = ans;
+            document.querySelectorAll(`#q-${qNum} .mc-btn`).forEach(btn => { btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500', 'shadow-md'); btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300'); });
+            const selectedBtn = document.querySelector(`.mc-btn[data-q="${qNum}"][data-ans="${ans}"]`);
+            selectedBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-300'); selectedBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500', 'shadow-md');
+        };
+
+        // --- 修正後的提交批改邏輯 ---
+        document.getElementById('submitQuizBtn').addEventListener('click', async () => {
+            const answeredCount = Object.keys(studentAnswers).length;
+            if (answeredCount < activeQuiz.questionCount) { Swal.fire('尚未完成', `還有 ${activeQuiz.questionCount - answeredCount} 題未作答！`, 'warning'); return; }
+            Swal.fire({ title: '批改中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+
+            let correctThisTime = []; let wrongThisTime = []; 
+            for (let i = 1; i <= activeQuiz.questionCount; i++) {
+                if (studentAnswers[i] === activeQuiz.answerKey[i]) { correctThisTime.push(i.toString()); } else { wrongThisTime.push(i.toString()); }
+            }
+
+            const pastCorrect = currentStudent.quizProgress[activeQuiz.id] || [];
+            const newlyCorrect = correctThisTime.filter(qNum => !pastCorrect.includes(qNum));
+            const pointsEarned = newlyCorrect.length * (activeQuiz.pointsPerQuestion || 0);
+
+            try {
+                if (newlyCorrect.length > 0) {
+                    const updatedProgress = [...new Set([...pastCorrect, ...newlyCorrect])];
+                    const updatePayload = { points: increment(pointsEarned) };
+                    updatePayload[`quizProgress.${activeQuiz.id}`] = updatedProgress;
+                    await updateDoc(doc(db, "users", currentStudent.email), updatePayload);
+                    currentStudent.points += pointsEarned; currentStudent.quizProgress[activeQuiz.id] = updatedProgress; updateUI();
+                }
+
+                let resultMessage = `本次答對了 <b>${correctThisTime.length}</b> 題！<br>`;
+                if (newlyCorrect.length > 0) {
+                    resultMessage += `<br>✨ 其中 <b>${newlyCorrect.join(', ')}</b> 是新答對的！<br>🎉 獲得 <b>${pointsEarned}</b> 積分！`;
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                } else if (correctThisTime.length > 0) { resultMessage += `<br>（這些題目你以前已經拿過分數囉，當作複習很棒！）`; }
+
+                if (wrongThisTime.length > 0) {
+                    // 🐛 已修正: 使用 wrongThisTime
+                    resultMessage += `<br><br><span style="color:red">❌ 第 ${wrongThisTime.join(', ')} 題答錯了，再接再厲！</span>`;
+                    Swal.fire({ title: '批改完成', html: resultMessage, icon: pointsEarned > 0 ? 'success' : 'info', confirmButtonText: '繼續努力' }).then(() => {
+                        window.studentAnswers = {}; switchView('quizListView'); loadStudentQuizzes(); 
+                    });
+                } else {
+                    Swal.fire({ title: '💯 完美通關！', html: resultMessage, icon: 'success', confirmButtonText: '太棒了' }).then(() => {
+                        window.studentAnswers = {}; switchView('quizListView'); loadStudentQuizzes(); 
+                    });
+                }
+            } catch (error) { Swal.fire('錯誤', '網路不穩定，請重新提交。', 'error'); }
+        });
+    </script>
+</body>
+</html>
