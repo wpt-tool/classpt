@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>學生個人主頁 | 課堂系統</title>
+    <!-- 引入極簡排版、彈出視窗、煙火特效 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-blue-500 text-white shadow-md relative z-20">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -21,8 +23,11 @@
 
     <main class="max-w-5xl mx-auto px-4 py-8 relative z-10">
         
-        <!-- 視圖 1：個人主頁 -->
+        <!-- ==============================
+             視圖 1：個人主頁
+        =============================== -->
         <div id="homeView" class="block">
+            <!-- 學生資料卡 -->
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8 text-center relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full z-0"></div>
                 <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-50 rounded-full z-0"></div>
@@ -36,27 +41,45 @@
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div id="enterQuizBtn" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-green-300 transition cursor-pointer flex items-center gap-4 group">
-                    <div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">📝</div>
-                    <div><h3 class="font-bold text-gray-800 text-lg">自學任務區</h3><p class="text-gray-500 text-sm">完成小測獲取積分</p></div>
+
+            <!-- 主選單入口 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- 線上測驗 -->
+                <div onclick="switchView('quizListView'); loadStudentQuizzes();" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-green-300 transition cursor-pointer flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-3">📝</div>
+                    <h3 class="font-bold text-gray-800 text-lg">線上測驗</h3>
+                    <p class="text-gray-500 text-sm">選擇題自動批改</p>
                 </div>
-                <div id="enterStoreBtn" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-yellow-300 transition cursor-pointer flex items-center gap-4 group">
-                    <div class="w-14 h-14 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">🎁</div>
-                    <div><h3 class="font-bold text-gray-800 text-lg">兌換小賣部</h3><p class="text-gray-500 text-sm">使用積分兌換獎勵</p></div>
+                
+                <!-- 拍照上載 -->
+                <div onclick="switchView('uploadView'); loadMyHomeworks();" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-purple-300 transition cursor-pointer flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-3xl mb-3">📸</div>
+                    <h3 class="font-bold text-gray-800 text-lg">上載紙本練習</h3>
+                    <p class="text-gray-500 text-sm">拍照交功課賺積分</p>
+                </div>
+
+                <!-- 小賣部 -->
+                <div onclick="switchView('storeView'); loadStoreItems();" class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md hover:border-yellow-300 transition cursor-pointer flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-3xl mb-3">🎁</div>
+                    <h3 class="font-bold text-gray-800 text-lg">兌換小賣部</h3>
+                    <p class="text-gray-500 text-sm">使用積分換獎勵</p>
                 </div>
             </div>
         </div>
 
-        <!-- 視圖 2：測驗列表 -->
+        <!-- ==============================
+             視圖 2：測驗列表
+        =============================== -->
         <div id="quizListView" class="hidden">
             <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition font-bold">⬅️ 返回主頁</button>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">📝 自學任務區</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">📝 線上測驗區</h2>
             <p class="text-gray-500 mb-6">答對題目即可獲取積分，可重複挑戰拿滿分！</p>
             <div id="studentQuizGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- 視圖 3：作答畫面 -->
+        <!-- ==============================
+             視圖 3：作答畫面
+        =============================== -->
         <div id="quizPlayingView" class="hidden">
             <div class="flex justify-between items-center mb-4">
                 <button onclick="switchView('quizListView')" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition font-bold">⬅️ 放棄作答</button>
@@ -64,7 +87,11 @@
             </div>
             <h2 id="playingQuizTitle" class="text-xl font-bold text-gray-800 mb-6 text-center">測驗名稱</h2>
             <div class="flex flex-col md:flex-row gap-6">
-                <div class="md:w-2/3 bg-white p-2 rounded-xl shadow-sm border"><img id="playingQuizImage" src="" class="w-full h-auto rounded-lg object-contain" style="max-height: 60vh;"></div>
+                <!-- 左側考卷圖片 -->
+                <div class="md:w-2/3 bg-white p-2 rounded-xl shadow-sm border">
+                    <img id="playingQuizImage" src="" class="w-full h-auto rounded-lg object-contain" style="max-height: 60vh;">
+                </div>
+                <!-- 右側答案卡 -->
                 <div class="md:w-1/3 bg-white p-6 rounded-xl shadow-sm border flex flex-col">
                     <h3 class="font-bold text-gray-700 mb-4 border-b pb-2 text-center">📌 數位答案卡</h3>
                     <div id="answerSheetContainer" class="flex-grow overflow-y-auto mb-4 space-y-3 max-h-[50vh] px-2"></div>
@@ -73,9 +100,35 @@
             </div>
         </div>
 
-        <!-- 視圖 4：小賣部 -->
+        <!-- ==============================
+             視圖 4：拍照上載區
+        =============================== -->
+        <div id="uploadView" class="hidden">
+            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-purple-600 transition font-bold">⬅️ 返回主頁</button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">📸 上載紙本練習</h2>
+            <p class="text-gray-500 mb-6">完成書中題目後，拍照上傳給老師批閱賺取積分。</p>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 max-w-2xl mx-auto">
+                <label class="block text-sm font-bold text-gray-700 mb-2">練習主題 / 頁數</label>
+                <input type="text" id="hwTitle" placeholder="例如：課本 P.45 因式分解" class="w-full border p-3 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-purple-500">
+                
+                <label class="block text-sm font-bold text-gray-700 mb-2">拍攝照片</label>
+                <input type="file" id="hwImage" accept="image/*" capture="environment" class="w-full border p-2 rounded-lg mb-4 bg-gray-50">
+                
+                <img id="hwPreview" class="hidden w-full max-h-64 object-contain rounded-lg mb-4 border border-gray-200">
+                
+                <button id="submitHwBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-xl shadow-md transition">🚀 上傳繳交</button>
+            </div>
+
+            <h3 class="font-bold text-gray-700 mb-4 text-center">📂 我的上載紀錄</h3>
+            <div id="myHomeworkGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto"></div>
+        </div>
+
+        <!-- ==============================
+             視圖 5：小賣部
+        =============================== -->
         <div id="storeView" class="hidden">
-            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-blue-600 transition font-bold">⬅️ 返回主頁</button>
+            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-yellow-600 transition font-bold">⬅️ 返回主頁</button>
             <div class="flex justify-between items-end mb-6">
                 <div><h2 class="text-2xl font-bold text-gray-800">🎁 兌換小賣部</h2></div>
                 <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold">擁有積分: <span id="storeCurrentPoints">0</span></div>
@@ -88,9 +141,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, updateDoc, increment, addDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, updateDoc, increment, addDoc, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ⚠️⚠️⚠️ 請填入你的 Firebase 金鑰
+        // ⚠️⚠️⚠️ 1. 請填入 Firebase 金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyAWBQwYc79BXd8RoYnlKo03vVnyDiES3eE",
             authDomain: "class-pt.firebaseapp.com",
@@ -103,7 +156,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentStudent = null; let activeQuiz = null; 
+        // ⚠️⚠️⚠️ 2. 請填入 ImgBB 金鑰 (學生上傳照片用)
+        const IMGBB_API_KEY = "25d62dacbf43362c3dc77d20d167a3fa"; 
+
+        let currentStudent = null; 
+        let activeQuiz = null; 
 
         // === 登入驗證與介面切換 ===
         onAuthStateChanged(auth, async (user) => {
@@ -128,49 +185,16 @@
         }
 
         window.switchView = function(viewId) {
-            ['homeView', 'quizListView', 'quizPlayingView', 'storeView'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['homeView', 'quizListView', 'quizPlayingView', 'uploadView', 'storeView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
             document.getElementById(viewId).classList.remove('hidden');
             if(viewId === 'homeView') updateUI();
         };
         document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = "index.html"));
 
-        // === 1. 小賣部邏輯 ===
-        document.getElementById('enterStoreBtn').addEventListener('click', () => { switchView('storeView'); loadStoreItems(); });
-        async function loadStoreItems() {
-            const grid = document.getElementById('studentStoreGrid'); grid.innerHTML = '載入中...';
-            try {
-                const querySnapshot = await getDocs(query(collection(db, "store_items"), orderBy("points", "asc")));
-                grid.innerHTML = ''; if(querySnapshot.empty) { grid.innerHTML = '<p class="text-gray-400">目前沒有商品。</p>'; return; }
-                querySnapshot.forEach((docSnap) => {
-                    const item = docSnap.data(); const canAfford = currentStudent.points >= item.points;
-                    const btnClass = canAfford ? "bg-blue-600 hover:bg-blue-700 text-white shadow" : "bg-gray-200 text-gray-400 cursor-not-allowed";
-                    const btnText = canAfford ? "立即兌換" : "積分不足";
-                    const clickAction = canAfford ? `onclick="window.redeemItem('${docSnap.id}', '${item.name}', ${item.points})"` : "";
-                    const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-5 flex flex-col";
-                    card.innerHTML = `<div class="flex items-center gap-4 mb-4"><div class="text-5xl">${item.icon}</div><div><h4 class="font-bold text-lg">${item.name}</h4><span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded">💎 ${item.points} 分</span></div></div><p class="text-sm text-gray-500 mb-5 flex-grow">${item.desc}</p><button ${clickAction} class="w-full py-2.5 rounded-lg font-bold transition ${btnClass}">${btnText}</button>`;
-                    grid.appendChild(card);
-                });
-            } catch (error) {}
-        }
-        window.redeemItem = async function(itemId, itemName, itemPoints) {
-            Swal.fire({ title: '確認兌換？', text: `將扣除 ${itemPoints} 分`, icon: 'question', showCancelButton: true, confirmButtonColor: '#3085d6', confirmButtonText: '確認兌換' }).then(async (res) => {
-                if (res.isConfirmed) {
-                    if(currentStudent.points < itemPoints) { Swal.fire('錯誤', '積分不足！', 'error'); return; }
-                    Swal.fire({ title: '處理中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                    try {
-                        await updateDoc(doc(db, "users", currentStudent.email), { points: increment(-itemPoints) });
-                        await addDoc(collection(db, "orders"), { studentEmail: currentStudent.email, studentName: currentStudent.nameZh, studentClass: currentStudent.class, itemName: itemName, pointsCost: itemPoints, status: "pending", timestamp: new Date() });
-                        currentStudent.points -= itemPoints; updateUI();
-                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                        Swal.fire('兌換成功！', `請等待老師發放。`, 'success'); loadStoreItems();
-                    } catch (error) { Swal.fire('錯誤', '兌換失敗', 'error'); }
-                }
-            });
-        };
-
-        // === 2. 測驗庫邏輯 (智慧批改) ===
-        document.getElementById('enterQuizBtn').addEventListener('click', () => { switchView('quizListView'); loadStudentQuizzes(); });
-        async function loadStudentQuizzes() {
+        // === 1. 測驗庫邏輯 (智慧批改) ===
+        window.loadStudentQuizzes = async function() {
             const grid = document.getElementById('studentQuizGrid'); grid.innerHTML = '載入中...';
             try {
                 const querySnapshot = await getDocs(query(collection(db, "quizzes"), orderBy("createdAt", "desc")));
@@ -180,6 +204,7 @@
                     const pastCorrectArr = currentStudent.quizProgress[quiz.id] || [];
                     const isAllDone = pastCorrectArr.length === quiz.questionCount;
                     const badge = isAllDone ? `<span class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm shadow">✅ 已全對通關</span>` : `<span class="bg-white text-indigo-600 font-bold px-3 py-1 rounded-full text-sm shadow">已答對 ${pastCorrectArr.length}/${quiz.questionCount} 題</span>`;
+                    
                     const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col";
                     card.innerHTML = `
                         <div class="h-32 bg-gray-100 relative overflow-hidden group">
@@ -188,7 +213,7 @@
                         </div>
                         <div class="p-5 flex flex-col flex-grow"><h4 class="font-bold text-lg mb-2">${quiz.title}</h4>
                         <div class="mt-auto flex justify-between items-center"><span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded">💎 每題 ${quiz.pointsPerQuestion} 分</span>
-                        <button onclick="startQuiz('${encodeURIComponent(JSON.stringify(quiz))}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm">${isAllDone ? '再次練習' : '繼續挑戰'}</button></div></div>`;
+                        <button onclick="startQuiz('${encodeURIComponent(JSON.stringify(quiz))}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm">${isAllDone ? '再次練習' : '繼續挑戰'}</button></div></div>`;
                     grid.appendChild(card);
                 });
             } catch (error) {}
@@ -199,6 +224,7 @@
             document.getElementById('playingQuizTitle').innerText = activeQuiz.title;
             document.getElementById('playingRewardPoints').innerText = `${activeQuiz.pointsPerQuestion} / 題`;
             document.getElementById('playingQuizImage').src = activeQuiz.imageUrl;
+            
             const pastCorrect = currentStudent.quizProgress[activeQuiz.id] || [];
             const container = document.getElementById('answerSheetContainer'); container.innerHTML = ''; 
             for (let i = 1; i <= activeQuiz.questionCount; i++) {
@@ -220,7 +246,6 @@
             selectedBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-300'); selectedBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500', 'shadow-md');
         };
 
-        // --- 修正後的提交批改邏輯 ---
         document.getElementById('submitQuizBtn').addEventListener('click', async () => {
             const answeredCount = Object.keys(studentAnswers).length;
             if (answeredCount < activeQuiz.questionCount) { Swal.fire('尚未完成', `還有 ${activeQuiz.questionCount - answeredCount} 題未作答！`, 'warning'); return; }
@@ -251,7 +276,6 @@
                 } else if (correctThisTime.length > 0) { resultMessage += `<br>（這些題目你以前已經拿過分數囉，當作複習很棒！）`; }
 
                 if (wrongThisTime.length > 0) {
-                    // 🐛 已修正: 使用 wrongThisTime
                     resultMessage += `<br><br><span style="color:red">❌ 第 ${wrongThisTime.join(', ')} 題答錯了，再接再厲！</span>`;
                     Swal.fire({ title: '批改完成', html: resultMessage, icon: pointsEarned > 0 ? 'success' : 'info', confirmButtonText: '繼續努力' }).then(() => {
                         window.studentAnswers = {}; switchView('quizListView'); loadStudentQuizzes(); 
@@ -263,6 +287,82 @@
                 }
             } catch (error) { Swal.fire('錯誤', '網路不穩定，請重新提交。', 'error'); }
         });
+
+        // === 2. 拍照上載邏輯 ===
+        const hwImageInput = document.getElementById('hwImage'); const hwPreview = document.getElementById('hwPreview');
+        hwImageInput.addEventListener('change', function() {
+            if (this.files[0]) { const reader = new FileReader(); reader.onload = e => { hwPreview.src = e.target.result; hwPreview.classList.remove('hidden'); }; reader.readAsDataURL(this.files[0]); }
+        });
+
+        document.getElementById('submitHwBtn').addEventListener('click', async () => {
+            const title = document.getElementById('hwTitle').value.trim(); const file = hwImageInput.files[0];
+            if (!title || !file) { Swal.fire('資料不完整', '請填寫主題並拍攝照片', 'warning'); return; }
+            Swal.fire({ title: '上傳中...', text: '照片傳送中，請勿關閉視窗', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const formData = new FormData(); formData.append("image", file);
+                const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                const imgData = await imgRes.json();
+                if (!imgData.success) throw new Error("圖片上傳失敗");
+
+                await addDoc(collection(db, "homeworks"), {
+                    studentEmail: currentStudent.email, studentName: currentStudent.nameZh, studentClass: currentStudent.class,
+                    title: title, imageUrl: imgData.data.url, status: 'pending', timestamp: new Date()
+                });
+                Swal.fire('上傳成功！', '作業已送出給老師批閱。', 'success');
+                document.getElementById('hwTitle').value = ''; hwImageInput.value = ''; hwPreview.classList.add('hidden');
+                loadMyHomeworks();
+            } catch (error) { Swal.fire('錯誤', '上傳失敗', 'error'); }
+        });
+
+        window.loadMyHomeworks = async function() {
+            const grid = document.getElementById('myHomeworkGrid'); grid.innerHTML = '讀取中...';
+            try {
+                const q = query(collection(db, "homeworks"), where("studentEmail", "==", currentStudent.email), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                grid.innerHTML = '';
+                if(querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full text-center text-gray-400">你還沒有上傳過練習。</p>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const hw = docSnap.data(); const isGraded = hw.status === 'graded';
+                    const statusBadge = isGraded ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ 老師已批閱</span>` : `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">⏳ 待批改</span>`;
+                    const rewardSection = isGraded ? `<div class="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200"><p class="text-sm font-bold text-blue-600 mb-1">獲得積分：+${hw.pointsEarned || 0} 分</p>${hw.feedback ? `<p class="text-sm text-gray-700">💬 老師評語：${hw.feedback}</p>` : ''}</div>` : '';
+                    const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-sm border flex flex-col";
+                    card.innerHTML = `<div class="flex justify-between items-start mb-2"><h4 class="font-bold text-gray-800">${hw.title}</h4>${statusBadge}</div><img src="${hw.imageUrl}" class="w-full h-32 object-cover rounded mb-2 border"><span class="text-xs text-gray-400">${new Date(hw.timestamp.toDate()).toLocaleDateString()}</span>${rewardSection}`;
+                    grid.appendChild(card);
+                });
+            } catch (error) {}
+        };
+
+        // === 3. 小賣部邏輯 ===
+        window.loadStoreItems = async function() {
+            const grid = document.getElementById('studentStoreGrid'); grid.innerHTML = '載入中...';
+            try {
+                const querySnapshot = await getDocs(query(collection(db, "store_items"), orderBy("points", "asc")));
+                grid.innerHTML = ''; if(querySnapshot.empty) { grid.innerHTML = '<p class="text-gray-400">目前沒有商品。</p>'; return; }
+                querySnapshot.forEach((docSnap) => {
+                    const item = docSnap.data(); const canAfford = currentStudent.points >= item.points;
+                    const btnClass = canAfford ? "bg-blue-600 hover:bg-blue-700 text-white shadow" : "bg-gray-200 text-gray-400 cursor-not-allowed";
+                    const btnText = canAfford ? "立即兌換" : "積分不足";
+                    const clickAction = canAfford ? `onclick="window.redeemItem('${docSnap.id}', '${item.name}', ${item.points})"` : "";
+                    const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-5 flex flex-col";
+                    card.innerHTML = `<div class="flex items-center gap-4 mb-4"><div class="text-5xl">${item.icon}</div><div><h4 class="font-bold text-lg">${item.name}</h4><span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded">💎 ${item.points} 分</span></div></div><p class="text-sm text-gray-500 mb-5 flex-grow">${item.desc}</p><button ${clickAction} class="w-full py-2.5 rounded-lg font-bold transition ${btnClass}">${btnText}</button>`;
+                    grid.appendChild(card);
+                });
+            } catch (error) {}
+        }
+        window.redeemItem = async function(itemId, itemName, itemPoints) {
+            Swal.fire({ title: '確認兌換？', text: `將扣除 ${itemPoints} 分`, icon: 'question', showCancelButton: true, confirmButtonColor: '#3085d6', confirmButtonText: '確認兌換' }).then(async (res) => {
+                if (res.isConfirmed) {
+                    if(currentStudent.points < itemPoints) { Swal.fire('錯誤', '積分不足！', 'error'); return; }
+                    Swal.fire({ title: '處理中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    try {
+                        await updateDoc(doc(db, "users", currentStudent.email), { points: increment(-itemPoints) });
+                        await addDoc(collection(db, "orders"), { studentEmail: currentStudent.email, studentName: currentStudent.nameZh, studentClass: currentStudent.class, itemName: itemName, pointsCost: itemPoints, status: "pending", timestamp: new Date() });
+                        currentStudent.points -= itemPoints; updateUI(); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        Swal.fire('兌換成功！', `請等待老師發放。`, 'success'); loadStoreItems();
+                    } catch (error) { Swal.fire('錯誤', '兌換失敗', 'error'); }
+                }
+            });
+        };
     </script>
 </body>
 </html>
