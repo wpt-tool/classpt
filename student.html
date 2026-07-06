@@ -31,10 +31,17 @@
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8 text-center relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full z-0"></div>
                 <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-50 rounded-full z-0"></div>
-                <div class="relative z-10">
-                    <div class="w-24 h-24 bg-gradient-to-tr from-blue-400 to-indigo-400 text-white rounded-full flex items-center justify-center text-4xl font-bold mx-auto mb-4 shadow-lg" id="avatarText">?</div>
-                    <h2 class="text-3xl font-bold text-gray-800 mb-1" id="studentName">載入中...</h2>
-                    <p class="text-gray-500 mb-6 font-medium" id="studentClass">--班 --號</p>
+               <div class="relative z-10 flex flex-col items-center">
+    <!-- RPG 動態大頭貼 -->
+    <img id="rpgAvatar" src="" class="w-32 h-32 bg-yellow-50 rounded-full border-4 border-white shadow-xl mb-1 transform hover:scale-110 transition duration-300">
+    
+    <!-- 等級與稱號徽章 -->
+    <div id="rpgLevelBadge" class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-5 py-1.5 rounded-full text-sm font-black shadow-md -mt-5 mb-3 z-20 border-2 border-white">
+        Lv.1 新手村村民
+    </div>
+    
+    <h2 class="text-3xl font-bold text-gray-800 mb-1" id="studentName">載入中...</h2>
+    <p class="text-gray-500 mb-6 font-medium" id="studentClass">--班 --號</p>
                     <div class="bg-gray-50 inline-block px-10 py-6 rounded-2xl border border-gray-100 shadow-inner">
                         <p class="text-gray-500 text-sm font-bold mb-1 tracking-wider">目前總積分</p>
                         <div class="text-5xl font-black text-blue-600"><span id="studentPoints">0</span> <span class="text-xl font-bold text-gray-400">分</span></div>
@@ -176,12 +183,37 @@
             } else { window.location.href = "index.html"; }
         });
 
-        function updateUI() {
+function updateUI() {
             document.getElementById('studentName').innerText = currentStudent.nameZh;
             document.getElementById('studentClass').innerText = `${currentStudent.class}班 ${currentStudent.classNo}號`;
             document.getElementById('studentPoints').innerText = currentStudent.points;
             document.getElementById('storeCurrentPoints').innerText = currentStudent.points;
-            document.getElementById('avatarText').innerText = currentStudent.nameZh.charAt(0);
+            
+            // 🌟 RPG 元素 1：動態生成冒險者頭像 (使用學生的 Email 作為種子)
+            // 這裡使用了 DiceBear 的 'adventurer' (冒險者) 風格
+            const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${currentStudent.email}&backgroundColor=c0aede,b6e3f4,ffd5dc,ffdfbf`;
+            document.getElementById('rpgAvatar').src = avatarUrl;
+
+            // 🌟 RPG 元素 2：計算等級與稱號
+            const points = currentStudent.points || 0;
+            // 設定每 50 分升 1 級
+            const level = Math.floor(points / 50) + 1; 
+            
+            // 根據等級給予超酷的稱號
+            let title = "新手村村民 🧑‍🌾";
+            if (level === 2) title = "見習冒險者 🎒";
+            if (level === 3) title = "青銅劍士 ⚔️";
+            if (level === 4) title = "白銀騎士 🛡️";
+            if (level === 5) title = "黃金勇者 👑";
+            if (level >= 6)  title = "傳說大魔導士 🧙‍♂️";
+
+            const badge = document.getElementById('rpgLevelBadge');
+            badge.innerText = `Lv.${level} ${title}`;
+
+            // 等級越高，徽章顏色越華麗 (可選特效)
+            if (level >= 5) {
+                badge.className = "bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-1.5 rounded-full text-sm font-black shadow-md -mt-5 mb-3 z-20 border-2 border-white animate-pulse";
+            }
         }
 
         window.switchView = function(viewId) {
