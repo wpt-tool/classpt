@@ -315,21 +315,51 @@
         });
 
         window.loadMyHomeworks = async function() {
-            const grid = document.getElementById('myHomeworkGrid'); grid.innerHTML = '讀取中...';
+            const grid = document.getElementById('myHomeworkGrid');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-500">讀取中...</div>';
             try {
-                const q = query(collection(db, "homeworks"), where("studentEmail", "==", currentStudent.email), orderBy("timestamp", "desc"));
+                // 💡 修正：拿掉 orderBy，只用 where 篩選
+                const q = query(collection(db, "homeworks"), where("studentEmail", "==", currentStudent.email));
                 const querySnapshot = await getDocs(q);
+                
                 grid.innerHTML = '';
                 if(querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full text-center text-gray-400">你還沒有上傳過練習。</p>'; return; }
-                querySnapshot.forEach((docSnap) => {
-                    const hw = docSnap.data(); const isGraded = hw.status === 'graded';
-                    const statusBadge = isGraded ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ 老師已批閱</span>` : `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">⏳ 待批改</span>`;
-                    const rewardSection = isGraded ? `<div class="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200"><p class="text-sm font-bold text-blue-600 mb-1">獲得積分：+${hw.pointsEarned || 0} 分</p>${hw.feedback ? `<p class="text-sm text-gray-700">💬 老師評語：${hw.feedback}</p>` : ''}</div>` : '';
-                    const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-sm border flex flex-col";
-                    card.innerHTML = `<div class="flex justify-between items-start mb-2"><h4 class="font-bold text-gray-800">${hw.title}</h4>${statusBadge}</div><img src="${hw.imageUrl}" class="w-full h-32 object-cover rounded mb-2 border"><span class="text-xs text-gray-400">${new Date(hw.timestamp.toDate()).toLocaleDateString()}</span>${rewardSection}`;
+
+                // 💡 修正：先把資料抓出來，用 JavaScript 依照時間「由新到舊」排序
+                let hwList = [];
+                querySnapshot.forEach(docSnap => hwList.push(docSnap.data()));
+                hwList.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+                hwList.forEach((hw) => {
+                    const isGraded = hw.status === 'graded';
+                    const statusBadge = isGraded 
+                        ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ 老師已批閱</span>` 
+                        : `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">⏳ 待批改</span>`;
+                    
+                    const rewardSection = isGraded ? `
+                        <div class="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <p class="text-sm font-bold text-blue-600 mb-1">獲得積分：+${hw.pointsEarned || 0} 分</p>
+                            ${hw.feedback ? `<p class="text-sm text-gray-700">💬 老師評語：${hw.feedback}</p>` : ''}
+                        </div>
+                    ` : '';
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border flex flex-col";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-gray-800">${hw.title}</h4>
+                            ${statusBadge}
+                        </div>
+                        <img src="${hw.imageUrl}" class="w-full h-32 object-cover rounded mb-2 border">
+                        <span class="text-xs text-gray-400">${new Date(hw.timestamp.toDate()).toLocaleDateString()}</span>
+                        ${rewardSection}
+                    `;
                     grid.appendChild(card);
                 });
-            } catch (error) {}
+            } catch (error) { 
+                grid.innerHTML = '<div class="col-span-full text-center text-red-500">讀取失敗，請稍後再試。</div>'; 
+                console.error(error); 
+            }
         };
 
         // === 3. 小賣部邏輯 ===
