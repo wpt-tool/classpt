@@ -4,13 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>學生個人主頁 | 課堂系統</title>
+    <!-- 引入極簡排版、彈出視窗、煙火特效 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style> .pixel-art { image-rendering: pixelated; } </style>
+    <style>
+        /* 保持點陣圖清晰 (不模糊) */
+        .pixel-art { image-rendering: pixelated; }
+        /* 更衣室背景特效 */
+        .wardrobe-bg {
+            background-color: #f0f4f8;
+            background-image: radial-gradient(#d1e4f9 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        /* 隱藏滾動條但可滾動 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-blue-500 text-white shadow-md relative z-20">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
             <div class="flex items-center gap-2 text-xl font-bold">🎓 學生自學空間</div>
@@ -20,16 +34,19 @@
 
     <main class="max-w-5xl mx-auto px-4 py-8 relative z-10">
         
-        <!-- 視圖 1：個人主頁 -->
+        <!-- ==========================================
+             視圖 1：個人主頁
+        =========================================== -->
         <div id="homeView" class="block">
+            <!-- 學生資料卡 -->
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8 text-center relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full z-0"></div>
-                <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-50 rounded-full z-0"></div>
                 
                 <div class="relative z-10 flex flex-col items-center">
-                    <!-- 🌟 角色紙娃娃展示區 -->
-                    <div class="w-32 h-32 bg-gradient-to-b from-blue-100 to-white rounded-full border-4 border-white shadow-xl mb-4 overflow-hidden flex justify-center items-center cursor-pointer hover:scale-105 transition" onclick="switchView('wardrobeView'); loadWardrobe();" title="點擊開啟衣櫃">
-                        <div id="avatarContainer" class="relative w-[64px] h-[64px] pixel-art" style="transform: scale(2); margin-top: -10px;"></div>
+                    <!-- 首頁大頭貼 (點擊進入更衣室) -->
+                    <div class="w-32 h-32 bg-gradient-to-b from-blue-100 to-white rounded-full border-4 border-white shadow-xl mb-4 overflow-hidden flex justify-center items-center cursor-pointer hover:scale-105 transition" onclick="switchView('wardrobeView');" title="點擊進入更衣室">
+                        <!-- 🌟 首頁角色畫布 (縮放2倍) -->
+                        <div id="homeAvatar" class="relative w-[64px] h-[64px] pixel-art" style="transform: scale(2); margin-top: -10px;"></div>
                     </div>
 
                     <h2 class="text-3xl font-bold text-gray-800 mb-1" id="studentName">載入中...</h2>
@@ -42,6 +59,7 @@
                 </div>
             </div>
 
+            <!-- 主選單入口 -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div onclick="switchView('quizListView'); loadStudentQuizzes();" class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md hover:border-green-300 transition cursor-pointer flex flex-col items-center text-center">
                     <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mb-2">📝</div><h3 class="font-bold text-gray-800">線上測驗</h3>
@@ -52,31 +70,57 @@
                 <div onclick="switchView('storeView'); loadStoreItems();" class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md hover:border-yellow-300 transition cursor-pointer flex flex-col items-center text-center">
                     <div class="w-14 h-14 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-2xl mb-2">🎁</div><h3 class="font-bold text-gray-800">小賣部</h3>
                 </div>
-                <div onclick="switchView('wardrobeView'); loadWardrobe();" class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md hover:border-pink-300 transition cursor-pointer flex flex-col items-center text-center">
-                    <div class="w-14 h-14 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-2xl mb-2">🎒</div><h3 class="font-bold text-gray-800">我的衣櫃</h3>
+                <div onclick="switchView('wardrobeView');" class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md hover:border-pink-300 transition cursor-pointer flex flex-col items-center text-center">
+                    <div class="w-14 h-14 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-2xl mb-2">🎒</div><h3 class="font-bold text-gray-800">外觀設定</h3>
                 </div>
             </div>
         </div>
 
-        <!-- 視圖 2：我的衣櫃 -->
+        <!-- ==========================================
+             🌟 視圖 2：沉浸式外觀設定 (我的衣櫃)
+        =========================================== -->
         <div id="wardrobeView" class="hidden">
-            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-pink-600 transition font-bold">⬅️ 返回主頁</button>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">🎒 我的衣櫃</h2>
-            <p class="text-gray-500 mb-6">點擊你擁有的裝備即可穿上/脫下！</p>
-            <div id="wardrobeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
-        </div>
+            <div class="bg-white rounded-3xl shadow-lg border overflow-hidden max-w-md mx-auto flex flex-col" style="height: 80vh;">
+                <!-- 頂部返回 -->
+                <div class="bg-white p-4 border-b flex items-center z-10">
+                    <button onclick="switchView('homeView')" class="text-gray-500 hover:text-blue-600 font-bold">⬅️ 返回</button>
+                    <h2 class="text-xl font-bold text-gray-800 mx-auto">外觀設定</h2>
+                    <div class="w-10"></div> <!-- 佔位對齊用 -->
+                </div>
 
-        <!-- 視圖 3：小賣部 -->
-        <div id="storeView" class="hidden">
-            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-yellow-600 transition font-bold">⬅️ 返回主頁</button>
-            <div class="flex justify-between items-end mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">🎁 兌換小賣部</h2>
-                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold">擁有積分: <span id="storeCurrentPoints">0</span></div>
+                <!-- 角色大圖預覽區 -->
+                <div class="flex-grow wardrobe-bg flex justify-center items-center relative overflow-hidden">
+                    <div class="absolute bottom-10 w-48 h-12 bg-blue-300 rounded-[100%] opacity-40 blur-md"></div>
+                    <div class="absolute bottom-10 w-40 h-10 border-2 border-blue-400 rounded-[100%] opacity-50"></div>
+                    
+                    <!-- 🌟 預覽畫布 (縮放 3.5 倍) -->
+                    <div id="wardrobeAvatar" class="relative w-[64px] h-[64px] pixel-art z-10" style="transform: scale(3.5); margin-top: -30px;"></div>
+                </div>
+
+                <!-- 下方裝備選擇區 -->
+                <div class="bg-blue-50 h-1/2 flex flex-col border-t-2 border-blue-200">
+                    <!-- 分類頁籤 (橫向滾動) -->
+                    <div class="flex overflow-x-auto no-scrollbar bg-blue-500 text-white px-2 pt-2 gap-1">
+                        <button onclick="changeWardrobeTab('hair')" id="tab-hair" class="tab-btn flex-1 min-w-[60px] py-2 bg-blue-600 rounded-t-lg font-bold">💇‍♂️</button>
+                        <button onclick="changeWardrobeTab('shirt')" id="tab-shirt" class="tab-btn flex-1 min-w-[60px] py-2 bg-blue-500 rounded-t-lg opacity-70 hover:opacity-100">👕</button>
+                        <button onclick="changeWardrobeTab('pants')" id="tab-pants" class="tab-btn flex-1 min-w-[60px] py-2 bg-blue-500 rounded-t-lg opacity-70 hover:opacity-100">👖</button>
+                        <button onclick="changeWardrobeTab('shoes')" id="tab-shoes" class="tab-btn flex-1 min-w-[60px] py-2 bg-blue-500 rounded-t-lg opacity-70 hover:opacity-100">👟</button>
+                        <button onclick="changeWardrobeTab('weapon')" id="tab-weapon" class="tab-btn flex-1 min-w-[60px] py-2 bg-blue-500 rounded-t-lg opacity-70 hover:opacity-100">⚔️</button>
+                    </div>
+
+                    <!-- 裝備方格清單 -->
+                    <div class="flex-grow bg-blue-600 p-4 overflow-y-auto">
+                        <div id="wardrobeItemGrid" class="grid grid-cols-4 gap-3">
+                            <!-- 裝備方塊會在這裡生成 -->
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="studentStoreGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- 視圖 4：線上測驗區 -->
+        <!-- ==========================================
+             視圖 3：線上測驗
+        =========================================== -->
         <div id="quizListView" class="hidden">
             <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 font-bold">⬅️ 返回主頁</button>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">📝 線上測驗區</h2>
@@ -86,6 +130,7 @@
         <div id="quizPlayingView" class="hidden">
             <div class="flex justify-between items-center mb-4">
                 <button onclick="switchView('quizListView')" class="flex items-center gap-2 text-gray-500 font-bold">⬅️ 放棄作答</button>
+                <div class="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full font-bold text-sm shadow-sm">獎勵: 💎 <span id="playingRewardPoints">0</span></div>
             </div>
             <h2 id="playingQuizTitle" class="text-xl font-bold text-gray-800 mb-6 text-center">測驗名稱</h2>
             <div class="flex flex-col md:flex-row gap-6">
@@ -98,7 +143,9 @@
             </div>
         </div>
 
-        <!-- 視圖 5：拍照上傳 -->
+        <!-- ==========================================
+             視圖 4：拍照上傳
+        =========================================== -->
         <div id="uploadView" class="hidden">
             <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 font-bold">⬅️ 返回主頁</button>
             <h2 class="text-2xl font-bold text-gray-800 mb-6">📸 上載紙本練習</h2>
@@ -112,8 +159,21 @@
             <div id="myHomeworkGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto"></div>
         </div>
 
+        <!-- ==========================================
+             視圖 5：小賣部
+        =========================================== -->
+        <div id="storeView" class="hidden">
+            <button onclick="switchView('homeView')" class="mb-6 flex items-center gap-2 text-gray-500 hover:text-yellow-600 transition font-bold">⬅️ 返回主頁</button>
+            <div class="flex justify-between items-end mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">🎁 兌換小賣部</h2>
+                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold">擁有積分: <span id="storeCurrentPoints">0</span></div>
+            </div>
+            <div id="studentStoreGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+        </div>
+
     </main>
 
+    <!-- JavaScript 邏輯區 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -135,23 +195,24 @@
         // 🌟 自動帶入你的 ImgBB 金鑰
         const IMGBB_API_KEY = "25d62dacbf43362c3dc77d20d167a3fa"; 
 
-        // ⚠️⚠️⚠️ 新手預設外觀 (請務必填寫 ImgBB 網址！)
+        // ⚠️⚠️⚠️ 🌟 這裡換成了「真正的圖片直接連結 (.png 結尾)」！保證不破圖！
         const DEFAULTS = {
-            body: "https://ibb.co/1YNfJvhq", 
-            head: "https://ibb.co/cRtM1HD",
-            shirt: "https://ibb.co/WWVWhdm8",
-            pants: "https://ibb.co/ksPm57kz",
-            shoes: "https://ibb.co/zhNwnpN4",
-            hair: "https://ibb.co/rR9mhyLD",
-            weapon: "" // 空的代表沒拿東西
+            body: "https://i.ibb.co/vCWxvwgP/walk.png",    // 淺膚色男素體
+            head: "https://i.ibb.co/4CM97GP/walk.png",    // 淺膚色男頭
+            shirt: "https://i.ibb.co/bgbg0ycw/walk.png", // 白衣
+            pants: "https://i.ibb.co/W4RVGhq7/walk.png",  // 藍褲
+            shoes: "https://i.ibb.co/DDLnVhLR/walk.png",       // 棕鞋
+            hair: "https://i.ibb.co/hJ0yN8n3/walk.png",        // 🌟 你的橘色頭髮！
+            weapon: "" // 預設空手
         };
 
-        // 衣櫃類別的中文化翻譯
-        const equipTypeNames = { shirt:'上衣', pants:'褲子', shoes:'鞋子', hair:'髮型', head:'帽子/頭飾', weapon:'武器' };
+        const equipTypeNames = { shirt:'上衣', pants:'褲子', shoes:'鞋子', hair:'髮型', head:'頭飾', weapon:'武器' };
 
-        let currentStudent = null; let activeQuiz = null; 
+        let currentStudent = null; 
+        let activeQuiz = null; 
+        let activeTab = 'hair'; 
 
-        // === 登入與資料初始化 ===
+        // === 登入與資料庫初始化 ===
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -172,62 +233,101 @@
             } else { window.location.href = "index.html"; }
         });
 
+        // 介面切換
         window.switchView = function(viewId) {
             ['homeView', 'quizListView', 'quizPlayingView', 'uploadView', 'storeView', 'wardrobeView'].forEach(id => {
                 if(document.getElementById(id)) document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(viewId).classList.remove('hidden');
+            
             if(viewId === 'homeView') updateUI();
+            if(viewId === 'wardrobeView') renderWardrobe(); 
         };
         document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = "index.html"));
 
-        // === 🌟 1. 角色紙娃娃渲染與衣櫃 (支援衫/褲/鞋疊加順序) ===
+        // === 🌟 1. 角色紙娃娃渲染與衣櫃 (強化版，保證跨瀏覽器不破圖) ===
         window.updateUI = function() {
-            document.getElementById('studentName').innerText = currentStudent.nameZh;
-            document.getElementById('studentClass').innerText = `${currentStudent.class}班 ${currentStudent.classNo}號`;
-            document.getElementById('studentPoints').innerText = currentStudent.points;
+            if(document.getElementById('studentName')) document.getElementById('studentName').innerText = currentStudent.nameZh;
+            if(document.getElementById('studentClass')) document.getElementById('studentClass').innerText = `${currentStudent.class}班 ${currentStudent.classNo}號`;
+            if(document.getElementById('studentPoints')) document.getElementById('studentPoints').innerText = currentStudent.points;
             if(document.getElementById('storeCurrentPoints')) document.getElementById('storeCurrentPoints').innerText = currentStudent.points;
 
-            const container = document.getElementById('avatarContainer'); container.innerHTML = ''; 
+            const canvases = ['homeAvatar', 'wardrobeAvatar'];
+            const layers = ['body', 'head', 'pants', 'shoes', 'shirt', 'hair', 'weapon']; // 由下到上疊加
             
-            // 🌟 圖層疊加順序 (由下到上疊加)
-            const layers = ['body', 'head', 'pants', 'shoes', 'shirt', 'hair', 'weapon'];
-            
-            layers.forEach((layer, index) => {
-                const imgUrl = currentStudent.equipped[layer] || DEFAULTS[layer];
-                if (imgUrl) {
-                    const div = document.createElement('div');
-                    // 🌟 魔法截圖：往下移動 128px 來顯示正面站立的圖案
-                    div.style = `position: absolute; width: 64px; height: 64px; z-index: ${index * 10}; background-image: url('${imgUrl}'); background-position: 0px -128px; background-repeat: no-repeat;`;
-                    container.appendChild(div);
-                }
+            canvases.forEach(canvasId => {
+                const container = document.getElementById(canvasId);
+                if(!container) return;
+                container.innerHTML = ''; 
+                
+                layers.forEach((layer, index) => {
+                    let imgUrl = currentStudent.equipped[layer] || DEFAULTS[layer];
+                    // 防呆：如果資料庫的網址壞了，強制使用預設值
+                    if (!imgUrl || !imgUrl.startsWith('http')) imgUrl = DEFAULTS[layer];
+                    
+                    if (imgUrl) {
+                        const div = document.createElement('div');
+                        // 🌟 魔法截圖：往下移動 128px 來顯示正面站立的圖案 (支援所有 LPC 圖)
+                        div.style.cssText = `position: absolute; width: 64px; height: 64px; z-index: ${index * 10}; background-image: url('${imgUrl}'); background-position: 0px -128px; background-repeat: no-repeat;`;
+                        container.appendChild(div);
+                    }
+                });
             });
         };
 
-        window.loadWardrobe = function() {
-            const grid = document.getElementById('wardrobeGrid'); grid.innerHTML = '';
-            if (!currentStudent.inventory || currentStudent.inventory.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-10">你的衣櫃空空如也，快去小賣部逛逛吧！</p>'; return;
+        // 衣櫃頁籤切換
+        window.changeWardrobeTab = function(tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'opacity-100');
+                btn.classList.add('bg-blue-500', 'opacity-70');
+            });
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('bg-blue-500', 'opacity-70');
+                activeBtn.classList.add('bg-blue-600', 'opacity-100');
             }
+            renderWardrobe();
+        };
 
-            currentStudent.inventory.forEach(item => {
-                const isEquipped = currentStudent.equipped[item.type] === item.spriteUrl;
-                const borderClass = isEquipped ? "border-pink-500 bg-pink-50" : "border-gray-200 bg-white hover:border-pink-300";
-                const badge = isEquipped ? `<span class="absolute top-1 right-1 bg-pink-500 text-white text-[10px] px-2 py-0.5 rounded-full z-10">穿戴中</span>` : '';
+        window.renderWardrobe = function() {
+            const grid = document.getElementById('wardrobeItemGrid'); grid.innerHTML = '';
+            
+            const isDefaultEquipped = !currentStudent.equipped[activeTab] || currentStudent.equipped[activeTab] === DEFAULTS[activeTab];
+            const defaultBorder = isDefaultEquipped ? 'border-green-400 border-4 bg-blue-100' : 'border-blue-400 border-2 bg-blue-50 hover:border-blue-300';
+            
+            // 預設/脫下按鈕
+            grid.innerHTML += `
+                <div onclick="equipItem('${activeTab}', '')" class="rounded-xl cursor-pointer flex flex-col items-center justify-center h-[90px] relative transition ${defaultBorder}">
+                    <span class="text-2xl mb-1">🔄</span><span class="text-[10px] font-bold text-gray-500">預設/脫下</span>
+                </div>`;
+
+            const itemsInTab = currentStudent.inventory.filter(item => item.type === activeTab);
+            itemsInTab.forEach(item => {
+                const isEquipped = currentStudent.equipped[activeTab] === item.spriteUrl;
+                const borderClass = isEquipped ? "border-green-400 border-4 bg-green-50" : "border-blue-400 border-2 bg-white hover:border-blue-300";
+                const checkIcon = isEquipped ? `<div class="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold z-20 shadow-md">✓</div>` : '';
 
                 const card = document.createElement('div');
-                card.className = `rounded-xl shadow-sm border-2 p-3 flex flex-col items-center cursor-pointer transition relative ${borderClass}`;
-                card.onclick = () => equipItem(item.type, item.spriteUrl);
-                card.innerHTML = `${badge}<div class="w-16 h-16 pixel-art mb-2" style="background-image: url('${item.spriteUrl}'); background-position: 0px -128px;"></div><h4 class="font-bold text-sm text-gray-800 text-center">${item.name}</h4><p class="text-xs text-gray-400 text-center">${equipTypeNames[item.type] || '裝備'}</p>`;
+                card.className = `rounded-xl cursor-pointer flex items-center justify-center h-[90px] relative transition ${borderClass}`;
+                card.onclick = () => equipItem(activeTab, item.spriteUrl);
+                
+                // 🌟 使用 CSS Text 確保背景位置精準裁切
+                card.innerHTML = `
+                    ${checkIcon}
+                    <div class="w-16 h-16 pixel-art" style="background-image: url('${item.spriteUrl}'); background-position: 0px -128px; background-repeat: no-repeat;"></div>
+                `;
                 grid.appendChild(card);
             });
         };
 
         window.equipItem = async function(type, spriteUrl) {
-            if (currentStudent.equipped[type] === spriteUrl) { currentStudent.equipped[type] = ""; } else { currentStudent.equipped[type] = spriteUrl; }
-            updateUI(); loadWardrobe(); 
+            currentStudent.equipped[type] = spriteUrl; // 若為空字串，updateUI 會自動抓 DEFAULTS
+            updateUI(); 
+            renderWardrobe(); 
             await updateDoc(doc(db, "users", currentStudent.email), { [`equipped.${type}`]: currentStudent.equipped[type] });
         };
+
 
         // === 2. 小賣部購買邏輯 ===
         window.loadStoreItems = async function() {
@@ -248,11 +348,16 @@
                     }
 
                     const displayImage = item.type !== 'consumable' 
-                        ? `<div class="w-16 h-16 pixel-art" style="background-image: url('${item.spriteUrl}'); background-position: 0px -128px; transform: scale(1.5); margin: 10px;"></div>`
+                        ? `<div class="w-16 h-16 pixel-art" style="background-image: url('${item.spriteUrl}'); background-position: 0px -128px; background-repeat: no-repeat; transform: scale(1.5); margin: 10px;"></div>`
                         : `<div class="text-5xl mb-3">${item.icon}</div>`;
 
                     const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-5 flex flex-col items-center";
-                    card.innerHTML = `${displayImage}<h4 class="font-bold text-lg mb-1">${item.name}</h4><span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded mb-3">💎 ${item.points} 分</span><p class="text-xs text-gray-500 mb-5 flex-grow text-center">${item.desc}</p><button ${clickAction} class="w-full py-2.5 rounded-lg font-bold transition ${btnClass}">${btnText}</button>`;
+                    card.innerHTML = `
+                        ${displayImage}
+                        <h4 class="font-bold text-lg mb-1">${item.name}</h4>
+                        <span class="text-sm font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded mb-3">💎 ${item.points} 分</span>
+                        <p class="text-xs text-gray-500 mb-5 flex-grow text-center">${item.desc}</p>
+                        <button ${clickAction} class="w-full py-2.5 rounded-lg font-bold transition ${btnClass}">${btnText}</button>`;
                     grid.appendChild(card);
                 });
             } catch (error) {}
@@ -260,20 +365,21 @@
 
         window.redeemItem = async function(itemDataStr) {
             const item = JSON.parse(decodeURIComponent(itemDataStr));
-            Swal.fire({ title: `確認兌換？`, text: `將扣除 ${item.points} 分`, showCancelButton: true, confirmButtonText: '確認' }).then(async (res) => {
+            Swal.fire({ title: `確認兌換？`, text: `將扣除 ${item.points} 分`, showCancelButton: true, confirmButtonColor: '#3085d6', confirmButtonText: '確認' }).then(async (res) => {
                 if (res.isConfirmed) {
                     if(currentStudent.points < item.points) return;
-                    Swal.fire({ title: '處理中...', didOpen: () => Swal.showLoading() });
+                    Swal.fire({ title: '處理中...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                     try {
                         const userRef = doc(db, "users", currentStudent.email);
                         await updateDoc(userRef, { points: increment(-item.points) }); currentStudent.points -= item.points;
+
                         if (item.type === 'consumable') {
                             await addDoc(collection(db, "orders"), { studentEmail: currentStudent.email, studentName: currentStudent.nameZh, studentClass: currentStudent.class, itemName: item.name, pointsCost: item.points, status: "pending", timestamp: new Date() });
                             Swal.fire('兌換成功！', '請等待老師發放。', 'success');
                         } else {
                             const inventoryItem = { id: item.id, name: item.name, type: item.type, spriteUrl: item.spriteUrl };
                             await updateDoc(userRef, { inventory: arrayUnion(inventoryItem) }); currentStudent.inventory.push(inventoryItem);
-                            Swal.fire('獲得新裝備！', '已放入衣櫃', 'success');
+                            Swal.fire('獲得新裝備！', '裝備已放入「外觀設定」，快去穿上吧！', 'success');
                         }
                         updateUI(); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); loadStoreItems();
                     } catch (error) {}
@@ -281,7 +387,7 @@
             });
         };
 
-        // === 3. 線上測驗 ===
+        // === 3. 線上測驗邏輯 ===
         window.loadStudentQuizzes = async function() {
             const grid = document.getElementById('studentQuizGrid'); grid.innerHTML = '載入中...';
             try {
@@ -300,7 +406,9 @@
         }
         window.startQuiz = function(quizDataStr) {
             activeQuiz = JSON.parse(decodeURIComponent(quizDataStr)); window.studentAnswers = {}; 
-            document.getElementById('playingQuizTitle').innerText = activeQuiz.title; document.getElementById('playingQuizImage').src = activeQuiz.imageUrl;
+            document.getElementById('playingQuizTitle').innerText = activeQuiz.title; 
+            document.getElementById('playingRewardPoints').innerText = `${activeQuiz.pointsPerQuestion} / 題`;
+            document.getElementById('playingQuizImage').src = activeQuiz.imageUrl;
             const pastCorrect = currentStudent.quizProgress[activeQuiz.id] || [];
             const container = document.getElementById('answerSheetContainer'); container.innerHTML = ''; 
             for (let i = 1; i <= activeQuiz.questionCount; i++) {
@@ -364,10 +472,14 @@
         window.loadMyHomeworks = async function() {
             const grid = document.getElementById('myHomeworkGrid'); grid.innerHTML = '讀取中...';
             try {
-                const q = query(collection(db, "homeworks"), where("studentEmail", "==", currentStudent.email));
-                const querySnapshot = await getDocs(q); grid.innerHTML = '';
+                // 💡 修改: 不用 orderBy，交給前端排序避免 Firebase 報錯
+                const querySnapshot = await getDocs(query(collection(db, "homeworks"), where("studentEmail", "==", currentStudent.email)));
+                grid.innerHTML = '';
                 if(querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full text-center">無上載紀錄。</p>'; return; }
-                let hwList = []; querySnapshot.forEach(docSnap => hwList.push(docSnap.data())); hwList.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+                
+                let hwList = []; querySnapshot.forEach(docSnap => hwList.push(docSnap.data()));
+                hwList.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+                
                 hwList.forEach((hw) => {
                     const isGraded = hw.status === 'graded';
                     const badge = isGraded ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ 已批閱</span>` : `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">⏳ 待批改</span>`;
