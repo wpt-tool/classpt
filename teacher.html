@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>老師管理後台 | 課堂系統</title>
+    <!-- 引入極簡排版、彈出視窗、Excel解析套件 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-indigo-600 text-white shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -28,7 +30,10 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 py-8">
-        <!-- 分頁 1：課堂點評 -->
+        
+        <!-- ==========================================
+             分頁 1：課堂點評 (支援班別/組別過濾)
+        =========================================== -->
         <div id="classroomTab" class="block">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h2 class="text-2xl font-bold text-gray-800">✨ 課堂點評與加分</h2>
@@ -47,7 +52,9 @@
             <div id="studentGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
         </div>
 
-        <!-- 分頁 2：批改作業 -->
+        <!-- ==========================================
+             分頁 2：批改作業
+        =========================================== -->
         <div id="homeworkTab" class="hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">📸 批改學生上傳作業</h2>
@@ -56,7 +63,9 @@
             <div id="homeworkGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- 分頁 3：測驗管理 -->
+        <!-- ==========================================
+             分頁 3：測驗管理
+        =========================================== -->
         <div id="quizTab" class="hidden">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">📝 發佈自學小測</h2>
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row gap-8">
@@ -80,13 +89,14 @@
             <h3 class="font-bold text-gray-700 mb-4">📚 已發佈測驗</h3><div id="quizGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- 🌟 分頁 4：小賣部管理 (已升級支援裝備設定) -->
+        <!-- ==========================================
+             分頁 4：小賣部管理 (支援裝備設定)
+        =========================================== -->
         <div id="storeTab" class="hidden">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">🎁 小賣部商品管理</h2>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
                 <h3 class="font-bold text-indigo-600 mb-4">➕ 新增上架物品</h3>
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <!-- 物品種類選擇 -->
                     <div class="md:col-span-3">
                         <label class="block text-xs text-gray-500 mb-1">物品種類</label>
                         <select id="itemCategory" class="w-full border border-gray-300 p-2 rounded-lg outline-none" onchange="document.getElementById('equipmentFields').classList.toggle('hidden', this.value === 'consumable')">
@@ -108,11 +118,12 @@
                         <input type="text" id="itemIcon" placeholder="例: 🎫" class="w-full border border-gray-300 p-2 rounded-lg outline-none text-center">
                     </div>
                     
-                    <!-- 虛擬裝備專用輸入框 (預設隱藏) -->
                     <div id="equipmentFields" class="md:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4 hidden bg-indigo-50 p-4 rounded-lg border border-indigo-100">
                         <div>
-                            <label class="block text-xs text-indigo-500 font-bold mb-1">裝備部位 (上衣/褲子/鞋子...)</label>
+                            <label class="block text-xs text-indigo-500 font-bold mb-1">裝備部位</label>
                             <select id="itemEquipType" class="w-full border border-gray-300 p-2 rounded-lg outline-none">
+                                <option value="body">膚色</option>
+                                <option value="head">臉型/頭部</option>
                                 <option value="shirt">上衣 (衫)</option>
                                 <option value="pants">褲子</option>
                                 <option value="shoes">鞋子</option>
@@ -139,11 +150,13 @@
             <div id="storeGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"></div>
         </div>
 
-        <!-- 分頁 5：兌換審核 -->
+        <!-- ==========================================
+             分頁 5：兌換審核 (訂單紀錄)
+        =========================================== -->
         <div id="ordersTab" class="hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">📋 學生兌換紀錄</h2>
-                <button id="refreshOrdersBtn" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm">🔄 更新</button>
+                <button id="refreshOrdersBtn" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm">🔄 更新訂單</button>
             </div>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
                 <table class="w-full text-left border-collapse min-w-[600px]">
@@ -155,7 +168,9 @@
             </div>
         </div>
 
-        <!-- 分頁 6：名單管理 -->
+        <!-- ==========================================
+             分頁 6：名單管理
+        =========================================== -->
         <div id="rosterTab" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">📝 上載學生名單</h2>
             <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-10 bg-gray-50">
@@ -165,6 +180,7 @@
         </div>
     </main>
 
+    <!-- JavaScript 邏輯區 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -248,6 +264,7 @@
             });
         }
         document.getElementById('classFilter').addEventListener('change', renderStudentCards); document.getElementById('groupFilter').addEventListener('change', renderStudentCards); document.getElementById('refreshBtn').addEventListener('click', fetchStudentsFromDB);
+        
         window.updateScore = async function(email, amount) {
             await updateDoc(doc(db, "users", email), { points: increment(amount) });
             const sIdx = allStudents.findIndex(s => s.id === email); if (sIdx !== -1) allStudents[sIdx].points += amount;
@@ -273,16 +290,20 @@
             reader.readAsArrayBuffer(file); e.target.value = ''; 
         });
 
-        // === 2. 批改作業 ===
+        // === 2. 批改作業 (修復 Firebase 排序問題) ===
         document.getElementById('refreshHomeworkBtn').addEventListener('click', loadHomeworks);
         async function loadHomeworks() {
             const grid = document.getElementById('homeworkGrid'); grid.innerHTML = '載入中...';
             try {
+                // 💡 修正：只用 where 篩選，排序交給 JS 處理，避免 Firebase 索引報錯
                 const q = query(collection(db, "homeworks"), where("status", "==", "pending"));
-                const querySnapshot = await getDocs(q); grid.innerHTML = '';
+                const querySnapshot = await getDocs(q); 
+                grid.innerHTML = '';
                 if(querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full py-10 text-center">無待批改作業。</p>'; return; }
+                
                 let hwList = []; querySnapshot.forEach(docSnap => hwList.push({ id: docSnap.id, ...docSnap.data() }));
                 hwList.sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
+                
                 hwList.forEach((hw) => {
                     const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-4 flex flex-col";
                     card.innerHTML = `<div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-800">${hw.studentClass}班 ${hw.studentName}</span><span class="text-xs text-gray-500">${new Date(hw.timestamp.toDate()).toLocaleDateString()}</span></div><h4 class="font-bold text-indigo-600 mb-2 border-b pb-2">${hw.title}</h4><a href="${hw.imageUrl}" target="_blank" class="block h-48 bg-gray-100 rounded-lg overflow-hidden mb-4 hover:opacity-80 flex items-center justify-center"><img src="${hw.imageUrl}" class="w-full h-full object-contain"></a><div class="mt-auto space-y-3"><div><label class="text-xs text-gray-500">給予積分 (可選)</label><input type="number" id="hw-points-${hw.id}" value="0" class="w-full border p-1 rounded text-sm"></div><div><label class="text-xs text-gray-500">老師評語 (可選)</label><input type="text" id="hw-feedback-${hw.id}" placeholder="做得很好！" class="w-full border p-1 rounded text-sm"></div><button onclick="window.gradeHomework('${hw.id}', '${hw.studentEmail}')" class="w-full bg-green-500 text-white font-bold py-2 rounded-lg">✅ 確認批改</button></div>`;
@@ -336,14 +357,13 @@
         }
         window.deleteQuiz = function(quizId) { Swal.fire({ title: '刪除測驗？', icon: 'warning', showCancelButton: true }).then(async (res) => { if (res.isConfirmed) { await deleteDoc(doc(db, "quizzes", quizId)); loadQuizzes(); } }); };
 
-        // === 🌟 4. 小賣部 (支援衫/褲/鞋分類) ===
+        // === 🌟 4. 小賣部 (支援衫/褲/鞋分類，強制 CSS 截圖) ===
         document.getElementById('addItemBtn').addEventListener('click', async () => {
             const category = document.getElementById('itemCategory').value; // consumable or equipment
             const name = document.getElementById('itemName').value.trim();
             const points = parseInt(document.getElementById('itemPoints').value);
             const desc = document.getElementById('itemDesc').value.trim();
             
-            // 根據類型抓資料
             let icon = "", equipType = "", spriteUrl = "";
             if (category === 'consumable') {
                 icon = document.getElementById('itemIcon').value.trim() || "🎁";
@@ -356,7 +376,6 @@
             if (!name || isNaN(points) || points <= 0) { Swal.fire('錯誤', '名稱或積分錯誤', 'error'); return; }
 
             try {
-                // 存入資料庫，type 直接標示它是衫褲鞋還是實體
                 await addDoc(collection(db, "store_items"), { 
                     type: category === 'consumable' ? 'consumable' : equipType, 
                     name, points, desc, icon, spriteUrl, createdAt: new Date() 
@@ -373,6 +392,7 @@
                 if(querySnapshot.empty) { grid.innerHTML = '<div class="col-span-full text-center py-10">無商品</div>'; return; }
                 querySnapshot.forEach((docSnap) => {
                     const item = docSnap.data(); const card = document.createElement('div'); card.className = "bg-white rounded-xl shadow-sm border p-5 flex flex-col items-center relative group";
+                    // 🌟 確保商品預覽圖也支援 LPC 截圖
                     const displayImage = item.type !== 'consumable' ? `<div style="width:64px; height:64px; background-image:url('${item.spriteUrl}'); background-position:0 -128px; transform:scale(1.5); image-rendering:pixelated;" class="mb-4 mt-2"></div>` : `<div class="text-5xl mb-3">${item.icon}</div>`;
                     const typeLabel = item.type !== 'consumable' ? `<span class="bg-indigo-100 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full absolute top-2 left-2">裝備</span>` : `<span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full absolute top-2 left-2">實體</span>`;
                     card.innerHTML = `${typeLabel}<button onclick="window.deleteItem('${docSnap.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-50 group-hover:opacity-100">🗑️</button>${displayImage}<h4 class="font-bold text-lg mb-1">${item.name}</h4><p class="text-xs text-gray-500 mb-4 h-8 overflow-hidden">${item.desc}</p><div class="w-full bg-yellow-50 text-yellow-700 text-center py-2 rounded-lg font-black mt-auto">💎 ${item.points} 分</div>`;
@@ -404,6 +424,7 @@
         window.fulfillOrder = async function(orderId) { await updateDoc(doc(db, "orders", orderId), { status: "completed" }); loadOrders(); };
         window.deleteOrder = async function(orderId) { await deleteDoc(doc(db, "orders", orderId)); loadOrders(); };
 
+        // 啟動載入
         fetchStudentsFromDB();
     </script>
 </body>
